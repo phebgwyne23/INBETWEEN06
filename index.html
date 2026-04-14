@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>In Between – Card Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',system-ui,sans-serif;background:#12121e;min-height:100vh;padding:.75rem;color:#e0ddf8;}
+
+.header{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem;box-shadow:0 4px 24px rgba(0,0,0,.4);flex-wrap:wrap;gap:8px;}
+h1{font-size:18px;font-weight:900;color:#c8b8ff;}h1 span{color:#ff7eb3;}
+.btn-reset-all{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:800;color:white;cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-reset-all:active{transform:scale(.95);}
+
+/* TABS */
+.tabs-wrap{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.65rem .85rem;margin-bottom:.65rem;}
+.tabs-lbl{font-size:10px;font-weight:900;color:#6860a0;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.tab{padding:6px 12px;border-radius:12px;border:1.5px solid #2e2c4a;background:#12121e;color:#7060b0;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;text-align:center;line-height:1.35;}
+.tab:hover{border-color:#6050a0;color:#c8b8ff;}
+.tab.active{background:linear-gradient(135deg,#4c1d95,#7c3aed);border-color:#7c3aed;color:white;box-shadow:0 3px 14px rgba(124,58,237,.4);}
+.tab .tsub{font-size:9px;font-weight:700;opacity:.8;display:block;}
+
+/* ROUND TRACK */
+.rtrack{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.65rem .85rem;margin-bottom:.65rem;}
+.rtrack-lbl{font-size:10px;font-weight:900;color:#6860a0;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.45rem;}
+.rdots{display:flex;gap:6px;align-items:center;}
+.rdot{width:32px;height:32px;border-radius:50%;border:1.5px solid #2e2c4a;background:#12121e;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#4a4070;flex-shrink:0;}
+.rdot.cur{background:linear-gradient(135deg,#4c1d95,#7c3aed);border-color:#7c3aed;color:white;box-shadow:0 0 0 3px rgba(124,58,237,.25);}
+.rdot.win{background:#0d2e1a;border-color:#166534;color:#4ade80;}
+.rdot.lose{background:#2d0a0a;border-color:#991b1b;color:#f87171;}
+.rdot.tie{background:#0c1a3a;border-color:#1e3a8a;color:#93c5fd;}
+.rline{flex:1;height:2px;background:#2a2840;border-radius:2px;}
+
+/* ROUND BOX */
+.round-box{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.8rem .85rem;margin-bottom:.65rem;}
+.round-lbl{font-size:10px;font-weight:900;color:#6860a0;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.55rem;}
+.sel-display{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.55rem;min-height:38px;}
+.sel-card{background:#1a1408;border:2.5px solid #c08820;border-radius:10px;padding:5px 12px;font-size:18px;font-weight:900;color:#fbbf24;line-height:1;}
+.sel-sep{color:#4a4070;font-size:18px;font-weight:900;}
+.sel-hint{font-size:12px;color:#3a3470;font-style:italic;}
+.prob-row{font-size:12px;font-weight:700;color:#9080d0;margin-bottom:.4rem;min-height:16px;}
+.pbar-wrap{background:#12121e;border-radius:6px;height:12px;overflow:hidden;margin-bottom:.3rem;}
+.pbar{height:12px;border-radius:6px;transition:width .35s,background .35s;width:0%;}
+.plabels{display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:.6rem;}
+.pl-w{color:#4ade80;}.pl-t{color:#fbbf24;}.pl-l{color:#f87171;}
+
+/* BET CHOICE BUTTONS */
+.bet-area{margin:.55rem 0;}
+.bet-lbl{font-size:11px;font-weight:900;color:#9080d0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
+.bet-btns{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-bet{border:1.5px solid;border-radius:12px;padding:8px 18px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;background:transparent;}
+.btn-bet:active{transform:scale(.95);}
+.btn-bet.bet-in{border-color:#10b981;color:#10b981;}.btn-bet.bet-in:hover,.btn-bet.bet-in.chosen{background:#065f46;color:white;border-color:#10b981;box-shadow:0 3px 12px rgba(16,185,129,.35);}
+.btn-bet.bet-out{border-color:#ef4444;color:#ef4444;}.btn-bet.bet-out:hover,.btn-bet.bet-out.chosen{background:#7f1d1d;color:white;border-color:#ef4444;box-shadow:0 3px 12px rgba(239,68,68,.35);}
+.btn-bet.bet-pair{border-color:#3b82f6;color:#3b82f6;}.btn-bet.bet-pair:hover,.btn-bet.bet-pair.chosen{background:#1e3a8a;color:white;border-color:#3b82f6;box-shadow:0 3px 12px rgba(59,130,246,.35);}
+
+.res-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:.45rem;}
+.btn-r{border:none;border-radius:10px;padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:filter .15s,transform .1s;}
+.btn-r:active{transform:scale(.95);}.btn-r:disabled{opacity:.3;cursor:not-allowed;}
+.bwin{background:linear-gradient(135deg,#065f46,#10b981);color:white;}
+.blose{background:linear-gradient(135deg,#7f1d1d,#ef4444);color:white;}
+.btie{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:white;}
+.bclr{background:#12121e;border:1.5px solid #2e2c4a;color:#6050a0;}
+.btn-r:hover:not(:disabled){filter:brightness(1.12);}
+.confirm-btn{border:none;border-radius:12px;padding:8px 20px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;margin-top:.4rem;}
+.confirm-btn:active{transform:scale(.97);}
+.confirm-win{background:linear-gradient(135deg,#065f46,#10b981);color:white;}
+.confirm-tie{background:linear-gradient(135deg,#78540a,#f59e0b);color:white;}
+.confirm-lose{background:linear-gradient(135deg,#7f1d1d,#ef4444);color:white;}
+
+/* BOT */
+.bot-wrap{background:#0d1a0e;border:2px solid #1a4a1e;border-radius:16px;padding:.8rem .85rem;margin-bottom:.65rem;}
+.bot-header{display:flex;align-items:center;gap:8px;margin-bottom:.65rem;}
+.bot-title{font-size:12px;font-weight:900;color:#4ade80;text-transform:uppercase;letter-spacing:.07em;}
+.bot-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.bot-verdict{border-radius:14px;padding:.85rem;text-align:center;margin-bottom:.65rem;transition:all .3s;}
+.bv-neutral{background:#1a1928;border:1.5px solid #2a2840;}
+.bv-win{background:#0a2010;border:1.5px solid #166534;}
+.bv-lose{background:#200808;border:1.5px solid #7f1d1d;}
+.bv-tie{background:#1a1408;border:1.5px solid #78540a;}
+.bv-text{font-size:20px;font-weight:900;margin-bottom:3px;}
+.bv-neutral .bv-text{color:#4a4070;}.bv-win .bv-text{color:#4ade80;}.bv-lose .bv-text{color:#f87171;}.bv-tie .bv-text{color:#fbbf24;}
+.bv-sub{font-size:11px;font-weight:700;}
+.bv-neutral .bv-sub{color:#3a3470;}.bv-win .bv-sub{color:#166534;}.bv-lose .bv-sub{color:#7f1d1d;}.bv-tie .bv-sub{color:#78540a;}
+.bot-stats{display:flex;flex-direction:column;gap:6px;}
+.bstat-row{display:flex;align-items:center;gap:7px;}
+.bstat-lbl{font-size:11px;font-weight:800;min-width:72px;}
+.bstat-lbl-w{color:#4ade80;}.bstat-lbl-t{color:#fbbf24;}.bstat-lbl-l{color:#f87171;}
+.bstat-bg{flex:1;height:8px;background:#12121e;border-radius:5px;overflow:hidden;}
+.bstat-fill{height:8px;border-radius:5px;transition:width .4s;}
+.bfill-w{background:#10b981;}.bfill-t{background:#f59e0b;}.bfill-l{background:#ef4444;}
+.bstat-pct{font-size:11px;font-weight:800;min-width:32px;text-align:right;}
+.bstat-pct-w{color:#4ade80;}.bstat-pct-t{color:#fbbf24;}.bstat-pct-l{color:#f87171;}
+.bstat-cnt{font-size:10px;color:#4a4070;min-width:50px;text-align:right;}
+.bot-gap{font-size:11px;color:#4a6040;margin-top:.5rem;line-height:1.7;}
+
+/* CROSS-GAME PREDICTION */
+.pred-wrap{background:#0d1020;border:2px solid #1a1a4a;border-radius:16px;padding:.8rem .85rem;margin-bottom:.65rem;}
+.pred-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem;}
+.pred-title{font-size:12px;font-weight:900;color:#a0c0ff;text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;}
+.pred-dot{width:8px;height:8px;border-radius:50%;background:#a0c0ff;animation:blink 1.4s infinite;}
+.pred-locked{font-size:11px;color:#3a3470;font-style:italic;}
+.pred-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.65rem;}
+.pred-card{background:#161628;border:1.5px solid #2a2850;border-radius:12px;padding:.6rem .75rem;}
+.pred-card-title{font-size:10px;font-weight:800;color:#5050a0;text-transform:uppercase;margin-bottom:.3rem;}
+.pred-card-val{font-size:19px;font-weight:900;color:#c8b8ff;}
+.pred-card-sub{font-size:10px;color:#4a4080;margin-top:1px;}
+.pred-insight{background:#161628;border:1.5px solid #2a2850;border-radius:12px;padding:.65rem .75rem;margin-bottom:.5rem;}
+.pred-insight-title{font-size:10px;font-weight:800;color:#6060c0;text-transform:uppercase;margin-bottom:.4rem;}
+.rank-hot{display:flex;flex-wrap:wrap;gap:5px;}
+.rank-chip{padding:3px 9px;border-radius:8px;font-size:11px;font-weight:800;}
+.chip-hot{background:#1a0808;color:#f87171;border:1px solid #7f1d1d;}
+.chip-cold{background:#0a200a;color:#4ade80;border:1px solid #166534;}
+.chip-norm{background:#1a1928;color:#7870a8;border:1px solid #2a2840;}
+.pred-advice{font-size:12px;font-weight:700;color:#8080d0;padding:.6rem .75rem;background:#161628;border:1.5px solid #2a2850;border-radius:12px;line-height:1.7;}
+
+/* SCORE */
+.score-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.65rem;}
+.badge{padding:6px 12px;border-radius:10px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;}
+.b-left{background:#1e1228;color:#c4b5fd;border:1.5px solid #4c1d95;}
+.b-win{background:#0d2e1a;color:#4ade80;border:1.5px solid #166534;}
+.b-lose{background:#2d0a0a;color:#f87171;border:1.5px solid #991b1b;}
+.b-tie{background:#0c1a3a;color:#93c5fd;border:1.5px solid #1e3a8a;}
+
+/* LOG */
+.log-wrap{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.75rem .85rem;margin-bottom:.65rem;}
+.log-lbl{font-size:10px;font-weight:900;color:#6860a0;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.55rem;}
+.log-entry{font-size:11px;font-weight:700;padding:4px 0;border-bottom:1px solid #1a1928;display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap;}
+.log-entry:last-child{border-bottom:none;}
+.log-info{color:#6858a0;}
+.log-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:800;white-space:nowrap;}
+.lb-w{background:#0d2e1a;color:#4ade80;}.lb-l{background:#2d0a0a;color:#f87171;}.lb-t{background:#0c1a3a;color:#93c5fd;}
+.lb-bet-in{background:#065f46;color:#a7f3d0;}.lb-bet-out{background:#7f1d1d;color:#fca5a5;}.lb-bet-pair{background:#1e3a8a;color:#93c5fd;}
+.log-empty{font-size:12px;color:#3a3470;font-style:italic;}
+
+/* COLLAPSIBLE */
+.collapsible-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.coll-toggle{font-size:11px;font-weight:800;color:#5040a0;background:#12121e;border:1px solid #2e2c4a;border-radius:8px;padding:3px 10px;cursor:pointer;}
+.coll-content{overflow:hidden;transition:max-height .3s ease;}
+
+/* LEGEND */
+.legend{background:#1a1928;border:1.5px solid #2a2840;border-radius:12px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.65rem;padding:.5rem .85rem;font-size:11px;font-weight:700;color:#7870a8;}
+.leg{display:flex;align-items:center;gap:5px;}
+.dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+/* PLAYED */
+.played-sec{background:#1e0a14;border:1.5px solid #7c1034;border-radius:16px;padding:.75rem .85rem;margin-bottom:.65rem;}
+.sec-lbl{font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.5rem;color:#f43f6e;}
+.played-cards{display:flex;flex-wrap:wrap;gap:4px;min-height:20px;}
+.played-empty{font-size:11px;font-weight:600;color:#4a2040;font-style:italic;}
+
+/* DECK */
+.divider{border:none;border-top:1.5px dashed #2a2840;margin:.65rem 0;}
+.deck-wrap{background:#1e1d30;border:1.5px solid #2e2c4a;border-radius:16px;padding:.75rem .85rem;margin-bottom:.65rem;}
+.deck-title{font-size:12px;font-weight:900;color:#9080d0;text-transform:uppercase;letter-spacing:.06em;}
+.suit-block{margin-bottom:.75rem;}
+.suit-head{font-size:11px;font-weight:800;color:#6860a0;letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;}
+.cards-wrap{display:flex;flex-wrap:wrap;gap:4px;}
+
+.card{width:44px;height:60px;border-radius:10px;border:1.5px solid #2e2c4e;background:#1e1d30;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;user-select:none;transition:transform .12s,box-shadow .12s;gap:1px;}
+.card:hover:not(.used):not(.bsel){transform:translateY(-4px);box-shadow:0 8px 20px rgba(120,80,220,.25);border-color:#6050a0;}
+.card:active:not(.used){transform:scale(.92);}
+.card.bsel{background:#1a1408;border:2.5px solid #c08820;box-shadow:0 0 0 3px rgba(192,136,32,.2);}
+.card.used{opacity:.15;cursor:default;}
+.card.wcard{background:#0a2016;border-color:#166534;box-shadow:0 0 0 2px rgba(22,101,52,.25);}
+.card.tcard{background:#1a1408;border-color:#92400e;}
+.card.lcard{background:#100a18;border-color:#1e1a30;}
+.card.sel3-win{background:#0a3018;border:2.5px solid #4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25);animation:pop .5s ease;}
+.card.sel3-tie{background:#2a1c06;border:2.5px solid #fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25);animation:pop .5s ease;}
+.card.sel3-lose{background:#300808;border:2.5px solid #f87171;box-shadow:0 0 0 3px rgba(248,113,113,.25);animation:pop .5s ease;}
+@keyframes pop{0%{transform:scale(1.2);}100%{transform:scale(1);}}
+.rank{font-size:13px;font-weight:900;line-height:1;}
+.sym{font-size:15px;line-height:1;}
+.red{color:#ff6080;}.black{color:#a0c8ff;}
+.xmark{display:none;position:absolute;inset:0;border-radius:9px;overflow:hidden;pointer-events:none;}
+.used .xmark{display:block;}
+.xmark::before,.xmark::after{content:'';position:absolute;width:140%;height:2.5px;background:#f43f6e;top:50%;left:-20%;transform-origin:center;}
+.xmark::before{transform:rotate(28deg);}.xmark::after{transform:rotate(-28deg);}
+.ccount{position:absolute;top:2px;right:3px;font-size:9px;font-weight:900;color:#5040a0;line-height:1;}
+
+.mini-card{width:34px;height:48px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;background:#280810;border:1.5px solid #d03060;position:relative;}
+.mini-rank{font-size:10px;font-weight:900;line-height:1;}
+.mini-sym{font-size:12px;line-height:1;}
+.mini-x{position:absolute;inset:0;border-radius:7px;overflow:hidden;pointer-events:none;}
+.mini-x::before,.mini-x::after{content:'';position:absolute;width:140%;height:2px;background:#f43f6e;top:50%;left:-20%;transform-origin:center;}
+.mini-x::before{transform:rotate(28deg);}.mini-x::after{transform:rotate(-28deg);}
+
+/* RANK GRID */
+.remain-head{font-size:12px;font-weight:900;color:#9080d0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.rank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:5px;margin-bottom:.65rem;}
+.rank-tile{background:#1a1928;border:1.5px solid #2a2840;border-radius:12px;padding:7px 9px;}
+.rt-name{font-size:10px;font-weight:700;color:#5850a0;margin-bottom:2px;}
+.rt-count{font-size:20px;font-weight:900;color:#c8b8ff;line-height:1;}
+.rt-sub{font-size:10px;font-weight:600;color:#3a3470;}
+.rt-bar{height:4px;border-radius:3px;background:#2a2840;margin-top:4px;overflow:hidden;}
+.rt-bar-fill{height:4px;border-radius:3px;background:#534AB7;transition:width .3s;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🃏 In <span>Between</span> Tracker</h1>
+  <button class="btn-reset-all" onclick="resetAll()">↺ Reset All</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs-lbl">Select Game</div>
+  <div class="tabs" id="gameTabs"></div>
+</div>
+
+<!-- ROUND PROGRESS -->
+<div class="rtrack">
+  <div class="rtrack-lbl">Round Progress — Game <span id="rpGameNum">1</span></div>
+  <div class="rdots" id="rdots"></div>
+</div>
+
+<!-- ROUND BOX -->
+<div class="round-box">
+  <div class="round-lbl">Round <span id="roundNum">1</span> of 5 — <span id="roundStep" style="color:#9080d0;">Step 1: tap 1st border card</span></div>
+  <div class="sel-display" id="selDisplay"><span class="sel-hint">Tap first border card below...</span></div>
+  <div class="prob-row" id="probRow"></div>
+  <div class="pbar-wrap" id="pbarWrap" style="display:none"><div class="pbar" id="pbar"></div></div>
+  <div class="plabels" id="plabels" style="display:none">
+    <span class="pl-w" id="plW"></span>
+    <span class="pl-t" id="plT"></span>
+    <span class="pl-l" id="plL"></span>
+  </div>
+  <div id="betArea"></div>
+  <div id="confirmArea"></div>
+  <div class="res-btns"><button class="btn-r bclr" onclick="clearSel()">✕ Clear</button></div>
+</div>
+
+<!-- PREDICTOR BOT -->
+<div class="bot-wrap">
+  <div class="bot-header">
+    <div class="bot-dot"></div>
+    <div class="bot-title">🤖 Predictor Bot</div>
+  </div>
+  <div class="bot-verdict bv-neutral" id="botVerdict">
+    <div class="bv-text" id="botText">Waiting...</div>
+    <div class="bv-sub" id="botSub">Tap 2 border cards above to get prediction</div>
+  </div>
+  <div class="bot-stats" id="botStats" style="display:none">
+    <div class="bstat-row"><span class="bstat-lbl bstat-lbl-w">In Between</span><div class="bstat-bg"><div class="bstat-fill bfill-w" id="bfW" style="width:0%"></div></div><span class="bstat-pct bstat-pct-w" id="bpW">0%</span><span class="bstat-cnt" id="bcW"></span></div>
+    <div class="bstat-row"><span class="bstat-lbl bstat-lbl-t">Pair / Tie</span><div class="bstat-bg"><div class="bstat-fill bfill-t" id="bfT" style="width:0%"></div></div><span class="bstat-pct bstat-pct-t" id="bpT">0%</span><span class="bstat-cnt" id="bcT"></span></div>
+    <div class="bstat-row"><span class="bstat-lbl bstat-lbl-l">Outside</span><div class="bstat-bg"><div class="bstat-fill bfill-l" id="bfL" style="width:0%"></div></div><span class="bstat-pct bstat-pct-l" id="bpL">0%</span><span class="bstat-cnt" id="bcL"></span></div>
+    <div class="bot-gap" id="botGap"></div>
+  </div>
+</div>
+
+<!-- CROSS-GAME PREDICTION (shows after game 1 done) -->
+<div class="pred-wrap" id="predWrap">
+  <div class="pred-header">
+    <div class="pred-title"><div class="pred-dot"></div>📈 Game Prediction</div>
+    <span class="pred-locked" id="predLocked">Unlocks after Game 1</span>
+  </div>
+  <div id="predBody"><div style="font-size:12px;color:#3a3470;font-style:italic;">Complete Game 1 to unlock cross-game predictions.</div></div>
+</div>
+
+<!-- SCORE -->
+<div class="score-bar">
+  <span class="badge b-left">🃏 <span id="bLeft">260</span>/260</span>
+  <span class="badge b-win">✅ <span id="bWin">0</span>W</span>
+  <span class="badge b-lose">❌ <span id="bLose">0</span>L</span>
+  <span class="badge b-tie">🔵 <span id="bTie">0</span>T</span>
+</div>
+
+<!-- LOG -->
+<div class="log-wrap">
+  <div class="collapsible-hdr" onclick="toggleColl('logBody','logToggle')">
+    <div class="log-lbl">Round Log — Game <span id="logGameNum">1</span></div>
+    <span class="coll-toggle" id="logToggle">▼ Show</span>
+  </div>
+  <div class="coll-content" id="logBody" style="max-height:0">
+    <div style="padding-top:.55rem;" id="logList"><div class="log-empty">No rounds yet.</div></div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg"><div class="dot" style="background:#1e1d30;border:1.5px solid #3e3c5e;"></div>In deck</div>
+  <div class="leg"><div class="dot" style="background:#1a1408;border:2.5px solid #c08820;"></div>Border</div>
+  <div class="leg"><div class="dot" style="background:#0a2016;border:1.5px solid #166534;"></div>WIN zone</div>
+  <div class="leg"><div class="dot" style="background:#1a1408;border:1.5px solid #92400e;"></div>TIE zone</div>
+  <div class="leg"><div class="dot" style="opacity:.15;background:#1e1d30;"></div>Used</div>
+</div>
+
+<!-- PLAYED -->
+<div class="played-sec">
+  <div class="collapsible-hdr" onclick="toggleColl('playedBody','playedToggle')">
+    <div class="sec-lbl">🎴 Played &nbsp;<span id="playedLbl" style="color:#a02050;font-weight:700;">(0/260)</span></div>
+    <span class="coll-toggle" id="playedToggle">▼ Show</span>
+  </div>
+  <div class="coll-content" id="playedBody" style="max-height:0">
+    <div style="padding-top:.5rem;"><div class="played-cards" id="playedDisplay"><span class="played-empty">No cards played yet</span></div></div>
+  </div>
+</div>
+
+<!-- DECK (collapsible) -->
+<div class="deck-wrap">
+  <div class="collapsible-hdr" onclick="toggleColl('deckBody','deckToggle')">
+    <div class="deck-title">🃏 Deck — Game <span id="deckGameNum">1</span></div>
+    <span class="coll-toggle" id="deckToggle">▼ Show</span>
+  </div>
+  <div class="coll-content" id="deckBody" style="max-height:0">
+    <div style="padding-top:.6rem;"><div id="deckContainer"></div></div>
+  </div>
+</div>
+
+<!-- RANK GRID (collapsible) -->
+<div class="deck-wrap">
+  <div class="collapsible-hdr" onclick="toggleColl('rankBody','rankToggle')">
+    <div class="remain-head" style="margin:0;">📊 Remaining by rank</div>
+    <span class="coll-toggle" id="rankToggle">▼ Show</span>
+  </div>
+  <div class="coll-content" id="rankBody" style="max-height:0">
+    <div style="padding-top:.6rem;"><div class="rank-grid" id="rankGrid"></div></div>
+  </div>
+</div>
+
+<script>
+const SUITS=[{name:'Spades',sym:'♠',cls:'black'},{name:'Hearts',sym:'♥',cls:'red'},{name:'Diamonds',sym:'♦',cls:'red'},{name:'Clubs',sym:'♣',cls:'black'}];
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RANK_VAL={A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const RANK_NAMES={A:'Ace',J:'Jack',Q:'Queen',K:'King'};
+const DECKS=5,TOTAL=52*DECKS;
+const CTYPES=[];
+for(const s of SUITS) for(const r of RANKS) CTYPES.push({rank:r,suit:s,key:r+s.sym});
+
+function newGame(){
+  const counts={};CTYPES.forEach(c=>counts[c.key]=DECKS);
+  return{counts,log:[],wins:0,losses:0,ties:0,rounds:0};
+}
+
+let games=Array.from({length:5},newGame);
+let cur=0,sel=[],sel3=null,betChoice=null; // betChoice: 'in'|'out'|'pair'
+
+// Global history for cross-game prediction
+let globalDrawnRanks={}; // rank -> count drawn across all completed games
+RANKS.forEach(r=>globalDrawnRanks[r]=0);
+
+function g(){return games[cur];}
+function availCount(key){let n=sel.filter(s=>s.key===key).length;if(sel3&&sel3.key===key)n++;return g().counts[key]-n;}
+function totalAvail(){return CTYPES.reduce((s,c)=>s+availCount(c.key),0);}
+
+function calcProb(){
+  if(sel.length<2)return null;
+  const v1=RANK_VAL[sel[0].rank],v2=RANK_VAL[sel[1].rank];
+  const lo=Math.min(v1,v2),hi=Math.max(v1,v2);
+  let wins=0,ties=0,total=0;
+  CTYPES.forEach(c=>{const n=availCount(c.key);const v=RANK_VAL[c.rank];total+=n;if(lo<hi){if(v>lo&&v<hi)wins+=n;else if(v===lo||v===hi)ties+=n;}});
+  const losses=total-wins-ties;
+  const pct=total>0?Math.round(wins/total*100):0;
+  const tiePct=total>0?Math.round(ties/total*100):0;
+  const losePct=100-pct-tiePct;
+  return{lo,hi,wins,ties,losses,total,pct,tiePct,losePct};
+}
+
+/* ---- COLLAPSIBLE ---- */
+function toggleColl(bodyId,toggleId){
+  const body=document.getElementById(bodyId);
+  const btn=document.getElementById(toggleId);
+  const isOpen=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+  if(isOpen){body.style.maxHeight='0';btn.textContent='▼ Show';}
+  else{body.style.maxHeight=body.scrollHeight+'px';btn.textContent='▲ Hide';}
+}
+function openColl(bodyId,toggleId){
+  const body=document.getElementById(bodyId);
+  const btn=document.getElementById(toggleId);
+  body.style.maxHeight=body.scrollHeight+'px';
+  btn.textContent='▲ Hide';
+}
+function recalcColl(bodyId){
+  const body=document.getElementById(bodyId);
+  if(body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0'){
+    body.style.maxHeight='none';// let it auto
+  }
+}
+
+/* ---- TABS ---- */
+function buildTabs(){
+  const wrap=document.getElementById('gameTabs');wrap.innerHTML='';
+  for(let i=0;i<5;i++){
+    const gm=games[i];const b=document.createElement('button');
+    b.className='tab'+(i===cur?' active':'');
+    const sub=gm.rounds>0?`${gm.wins}W ${gm.losses}L ${gm.ties}T`:'fresh';
+    b.innerHTML=`Game ${i+1}<span class="tsub">${sub}</span>`;
+    b.onclick=(()=>{const idx=i;return()=>switchGame(idx);})();
+    wrap.appendChild(b);
+  }
+  document.getElementById('logGameNum').textContent=cur+1;
+  document.getElementById('deckGameNum').textContent=cur+1;
+  document.getElementById('rpGameNum').textContent=cur+1;
+}
+function switchGame(idx){sel=[];sel3=null;betChoice=null;cur=idx;buildTabs();render();updateSelUI();updateBot();}
+
+/* ---- ROUND DOTS ---- */
+function renderRoundDots(){
+  const wrap=document.getElementById('rdots');wrap.innerHTML='';
+  const gm=g();
+  for(let i=0;i<5;i++){
+    if(i>0){const l=document.createElement('div');l.className='rline';wrap.appendChild(l);}
+    const d=document.createElement('div');
+    if(i<gm.rounds){const res=gm.log[i].result;d.className='rdot '+(res==='win'?'win':res==='lose'?'lose':'tie');d.textContent=res==='win'?'W':res==='lose'?'L':'T';}
+    else if(i===gm.rounds&&gm.rounds<5){d.className='rdot cur';d.textContent=i+1;}
+    else{d.className='rdot';d.textContent=i+1;}
+    wrap.appendChild(d);
+  }
+  document.getElementById('roundNum').textContent=Math.min(g().rounds+1,5);
+}
+
+/* ---- TAP CARD ---- */
+function tap(key){
+  if(g().rounds>=5)return;
+  const ct=CTYPES.find(c=>c.key===key);
+  // Phase 1 & 2: border cards
+  if(sel.length<2&&!betChoice){
+    const selIdx=sel.findIndex(s=>s.key===key);
+    if(selIdx>=0){sel.splice(selIdx,1);}
+    else{if(availCount(key)<=0)return;sel.push({key,rank:ct.rank,suit:ct.suit});}
+    sel3=null;betChoice=null;
+    refreshAllCards();updateSelUI();updateBot();renderRankGrid();updateBadges();
+    return;
+  }
+  // Phase 3: only after bet chosen — tap 3rd card
+  if(sel.length===2&&betChoice){
+    if(sel.find(s=>s.key===key))return;
+    if(availCount(key)<=0)return;
+    if(sel3&&sel3.key===key){sel3=null;refreshAllCards();updateSelUI();updateBot();renderRankGrid();updateBadges();return;}
+    const v3=RANK_VAL[ct.rank];
+    const lo=Math.min(RANK_VAL[sel[0].rank],RANK_VAL[sel[1].rank]);
+    const hi=Math.max(RANK_VAL[sel[0].rank],RANK_VAL[sel[1].rank]);
+    let result;
+    if(v3>lo&&v3<hi)result='win';
+    else if(v3===lo||v3===hi)result='tie';
+    else result='lose';
+    sel3={key,rank:ct.rank,suit:ct.suit,result};
+    refreshAllCards();updateSelUI();updateBot();renderRankGrid();updateBadges();
+  }
+}
+
+function chooseBet(bet){
+  betChoice=bet;
+  // highlight chosen button
+  document.querySelectorAll('.btn-bet').forEach(b=>b.classList.remove('chosen'));
+  const el=document.getElementById('bet-'+bet);if(el)el.classList.add('chosen');
+  updateSelUI();updateBot();refreshAllCards();
+}
+
+/* ---- CARD CLASS ---- */
+function cardClass(key){
+  const n=availCount(key);
+  if(n<=0&&!sel.find(s=>s.key===key)&&!(sel3&&sel3.key===key))return'card used';
+  if(sel.find(s=>s.key===key))return'card bsel';
+  if(sel3&&sel3.key===key){
+    if(sel3.result==='win')return'card sel3-win';
+    if(sel3.result==='tie')return'card sel3-tie';
+    return'card sel3-lose';
+  }
+  if(sel.length===2&&betChoice){
+    const lo=Math.min(RANK_VAL[sel[0].rank],RANK_VAL[sel[1].rank]);
+    const hi=Math.max(RANK_VAL[sel[0].rank],RANK_VAL[sel[1].rank]);
+    const v=RANK_VAL[CTYPES.find(c=>c.key===key).rank];
+    if(lo<hi){if(v>lo&&v<hi)return'card wcard';if(v===lo||v===hi)return'card tcard';return'card lcard';}
+  }
+  return'card';
+}
+function refreshAllCards(){
+  CTYPES.forEach(c=>{
+    const el=document.getElementById('c-'+c.key);if(!el)return;
+    el.className=cardClass(c.key);
+    const cc=el.querySelector('.ccount');if(cc)cc.textContent=availCount(c.key)+'/'+DECKS;
+  });
+}
+
+/* ---- SELECTION UI ---- */
+function updateSelUI(){
+  const disp=document.getElementById('selDisplay');
+  const probRow=document.getElementById('probRow');
+  const pbarWrap=document.getElementById('pbarWrap');
+  const pbar=document.getElementById('pbar');
+  const plabels=document.getElementById('plabels');
+  const stepLbl=document.getElementById('roundStep');
+  const confirmArea=document.getElementById('confirmArea');
+  const betArea=document.getElementById('betArea');
+  confirmArea.innerHTML='';betArea.innerHTML='';
+
+  if(g().rounds>=5){
+    disp.innerHTML='<span class="sel-hint" style="color:#4ade80;">Game complete! Switch to next game.</span>';
+    stepLbl.textContent='Game done';probRow.textContent='';pbarWrap.style.display='none';plabels.style.display='none';
+    return;
+  }
+  if(sel.length===0){
+    stepLbl.textContent='Step 1: tap 1st border card';
+    disp.innerHTML='<span class="sel-hint">Tap first border card below...</span>';
+    probRow.textContent='';pbarWrap.style.display='none';plabels.style.display='none';return;
+  }
+  if(sel.length===1){
+    stepLbl.textContent='Step 2: tap 2nd border card';
+    const c=sel[0];
+    disp.innerHTML=`<span class="sel-card">${c.rank}${c.suit.sym}</span><span class="sel-sep"> ↔ ?</span>`;
+    probRow.textContent='Tap second border card...';pbarWrap.style.display='none';plabels.style.display='none';return;
+  }
+
+  const c1=sel[0],c2=sel[1];
+  const isPair=RANK_VAL[c1.rank]===RANK_VAL[c2.rank];
+
+  // Show prob bar when 2 selected (before bet)
+  if(!betChoice){
+    stepLbl.textContent='Step 3: choose your bet';
+    disp.innerHTML=`<span class="sel-card">${c1.rank}${c1.suit.sym}</span><span class="sel-sep"> ↔ </span><span class="sel-card">${c2.rank}${c2.suit.sym}</span>`;
+    const p=calcProb();
+    if(p&&!isPair){
+      const gap=p.hi-p.lo-1;
+      probRow.textContent=`Gap: ${gap} rank${gap!==1?'s':''} · ${p.wins} win · ${p.ties} tie · ${p.losses} lose`;
+      pbarWrap.style.display='block';plabels.style.display='flex';
+      pbar.style.width=p.pct+'%';pbar.style.background=p.pct>=50?'#10b981':p.pct>=30?'#f59e0b':'#ef4444';
+      document.getElementById('plW').textContent=`✅ In ${p.pct}%`;
+      document.getElementById('plT').textContent=`🔵 Pair ${p.tiePct}%`;
+      document.getElementById('plL').textContent=`❌ Out ${p.losePct}%`;
+    } else if(isPair){
+      probRow.textContent='Same rank (Pair) — can only bet OUT or PAIR';
+      pbarWrap.style.display='none';plabels.style.display='none';
+    }
+    // Bet buttons
+    const bArea=document.createElement('div');bArea.className='bet-area';
+    const lbl=document.createElement('div');lbl.className='bet-lbl';lbl.textContent='Your Bet:';bArea.appendChild(lbl);
+    const btns=document.createElement('div');btns.className='bet-btns';
+    if(!isPair){
+      btns.innerHTML=`<button class="btn-bet bet-in" id="bet-in" onclick="chooseBet('in')">✅ IN</button>
+        <button class="btn-bet bet-out" id="bet-out" onclick="chooseBet('out')">❌ OUT</button>
+        <button class="btn-bet bet-pair" id="bet-pair" onclick="chooseBet('pair')">🔵 PAIR</button>`;
+    } else {
+      btns.innerHTML=`<button class="btn-bet bet-out" id="bet-out" onclick="chooseBet('out')">❌ OUT</button>
+        <button class="btn-bet bet-pair" id="bet-pair" onclick="chooseBet('pair')">🔵 PAIR</button>`;
+    }
+    bArea.appendChild(btns);betArea.appendChild(bArea);
+    return;
+  }
+
+  // Bet chosen, no 3rd card yet
+  if(!sel3){
+    stepLbl.textContent='Step 4: tap the 3rd card drawn';
+    const betLabel=betChoice==='in'?'✅ IN':betChoice==='out'?'❌ OUT':'🔵 PAIR';
+    const betCls=betChoice==='in'?'lb-bet-in':betChoice==='out'?'lb-bet-out':'lb-bet-pair';
+    disp.innerHTML=`<span class="sel-card">${c1.rank}${c1.suit.sym}</span><span class="sel-sep">↔</span><span class="sel-card">${c2.rank}${c2.suit.sym}</span><span class="sel-sep">→ ?</span><span class="log-badge ${betCls}" style="margin-left:4px;">Bet: ${betLabel}</span>`;
+    probRow.textContent='Now tap the 3rd card that was actually drawn...';pbarWrap.style.display='none';plabels.style.display='none';
+    // Show change bet option
+    const bArea=document.createElement('div');bArea.className='bet-area';
+    const lbl=document.createElement('div');lbl.className='bet-lbl';lbl.style.color='#4a4070';lbl.textContent='Change bet:';bArea.appendChild(lbl);
+    const btns=document.createElement('div');btns.className='bet-btns';
+    const isPairNow=RANK_VAL[c1.rank]===RANK_VAL[c2.rank];
+    if(!isPairNow){btns.innerHTML=`<button class="btn-bet bet-in${betChoice==='in'?' chosen':''}" id="bet-in" onclick="chooseBet('in')">✅ IN</button><button class="btn-bet bet-out${betChoice==='out'?' chosen':''}" id="bet-out" onclick="chooseBet('out')">❌ OUT</button><button class="btn-bet bet-pair${betChoice==='pair'?' chosen':''}" id="bet-pair" onclick="chooseBet('pair')">🔵 PAIR</button>`;}
+    else{btns.innerHTML=`<button class="btn-bet bet-out${betChoice==='out'?' chosen':''}" id="bet-out" onclick="chooseBet('out')">❌ OUT</button><button class="btn-bet bet-pair${betChoice==='pair'?' chosen':''}" id="bet-pair" onclick="chooseBet('pair')">🔵 PAIR</button>`;}
+    bArea.appendChild(btns);betArea.appendChild(bArea);
+    return;
+  }
+
+  // 3rd card selected
+  const actualResult=sel3.result; // win=in between, tie=pair, lose=outside
+  // Did player's bet match?
+  let betCorrect=false;
+  if(betChoice==='in'&&actualResult==='win')betCorrect=true;
+  if(betChoice==='out'&&actualResult==='lose')betCorrect=true;
+  if(betChoice==='pair'&&actualResult==='tie')betCorrect=true;
+
+  const resultLabel=actualResult==='win'?'✅ IN Between!':actualResult==='tie'?'🔵 PAIR/TIE':'❌ OUTSIDE';
+  const betLabel=betChoice==='in'?'IN':betChoice==='out'?'OUT':'PAIR';
+  const betMatchStr=betCorrect?`✅ Bet ${betLabel} — CORRECT!`:`❌ Bet ${betLabel} — WRONG`;
+  const resCls=actualResult==='win'?'sel-card" style="background:#0a3018;border-color:#4ade80;color:#4ade80':actualResult==='tie'?'sel-card" style="background:#2a1c06;border-color:#fbbf24;color:#fbbf24':'sel-card" style="background:#300808;border-color:#f87171;color:#f87171';
+  stepLbl.textContent=`3rd card: ${sel3.rank}${sel3.suit.sym} → ${resultLabel}`;
+  disp.innerHTML=`<span class="sel-card">${c1.rank}${c1.suit.sym}</span><span class="sel-sep">↔</span><span class="sel-card">${c2.rank}${c2.suit.sym}</span><span class="sel-sep">→</span><span class="${resCls}">${sel3.rank}${sel3.suit.sym}</span>`;
+  probRow.textContent=betMatchStr;
+  probRow.style.color=betCorrect?'#4ade80':'#f87171';
+  pbarWrap.style.display='none';plabels.style.display='none';
+
+  const btnCls=actualResult==='win'?'confirm-btn confirm-win':actualResult==='tie'?'confirm-btn confirm-tie':'confirm-btn confirm-lose';
+  const btn=document.createElement('button');btn.className=btnCls;
+  btn.textContent=`Confirm ${resultLabel}`;btn.onclick=()=>logResult(actualResult);
+  confirmArea.appendChild(btn);
+}
+
+function clearSel(){
+  sel=[];sel3=null;betChoice=null;
+  // reset prob row color
+  document.getElementById('probRow').style.color='#9080d0';
+  refreshAllCards();updateSelUI();updateBot();renderRankGrid();updateBadges();
+}
+
+/* ---- LOG RESULT ---- */
+function logResult(result){
+  if(sel.length!==2||g().rounds>=5)return;
+  const p=calcProb();const c1=sel[0],c2=sel[1];
+  g().counts[c1.key]=Math.max(0,g().counts[c1.key]-1);
+  g().counts[c2.key]=Math.max(0,g().counts[c2.key]-1);
+  if(sel3){
+    g().counts[sel3.key]=Math.max(0,g().counts[sel3.key]-1);
+    // track globally
+    globalDrawnRanks[sel3.rank]=(globalDrawnRanks[sel3.rank]||0)+1;
+  }
+  globalDrawnRanks[c1.rank]=(globalDrawnRanks[c1.rank]||0)+1;
+  globalDrawnRanks[c2.rank]=(globalDrawnRanks[c2.rank]||0)+1;
+  g().rounds++;
+  const c3label=sel3?sel3.rank+sel3.suit.sym:'?';
+  g().log.push({c1:c1.rank+c1.suit.sym,c2:c2.rank+c2.suit.sym,c3:c3label,result,bet:betChoice,pct:p?p.pct:0,round:g().rounds});
+  if(result==='win')g().wins++;else if(result==='lose')g().losses++;else g().ties++;
+  sel=[];sel3=null;betChoice=null;
+  document.getElementById('probRow').style.color='#9080d0';
+  render();updateSelUI();updateBot();buildTabs();updatePrediction();
+}
+
+/* ---- RENDER ---- */
+function render(){renderDeck();renderPlayedSection();renderRankGrid();updateBadges();renderLog();renderRoundDots();}
+
+function renderDeck(){
+  const cont=document.getElementById('deckContainer');cont.innerHTML='';
+  const emojiMap={Spades:'♠️',Hearts:'♥️',Diamonds:'♦️',Clubs:'♣️'};
+  for(const suit of SUITS){
+    const block=document.createElement('div');block.className='suit-block';
+    block.innerHTML=`<div class="suit-head">${emojiMap[suit.name]} ${suit.name}</div><div class="cards-wrap" id="wrap-${suit.name}"></div>`;
+    cont.appendChild(block);
+    const wrap=block.querySelector('.cards-wrap');
+    CTYPES.filter(c=>c.suit.name===suit.name).forEach(ct=>{
+      const el=document.createElement('div');el.className=cardClass(ct.key);el.id='c-'+ct.key;
+      el.innerHTML=`<span class="rank ${ct.suit.cls}">${ct.rank}</span><span class="sym ${ct.suit.cls}">${ct.suit.sym}</span><span class="ccount">${availCount(ct.key)}/${DECKS}</span><div class="xmark"></div>`;
+      el.addEventListener('click',()=>tap(ct.key));
+      wrap.appendChild(el);
+    });
+  }
+  // Re-open deck if it was open
+  const db=document.getElementById('deckBody');
+  if(db.style.maxHeight&&db.style.maxHeight!=='0px'&&db.style.maxHeight!=='0'){db.style.maxHeight='none';}
+}
+
+function renderPlayedSection(){
+  const el=document.getElementById('playedDisplay');
+  const played=[];
+  CTYPES.forEach(c=>{const used=DECKS-g().counts[c.key];for(let i=0;i<used;i++)played.push(c);});
+  document.getElementById('playedLbl').textContent=`(${played.length}/${TOTAL})`;
+  el.innerHTML='';
+  if(!played.length){el.innerHTML='<span class="played-empty">No cards played yet</span>';return;}
+  played.forEach(c=>{
+    const m=document.createElement('div');m.className='mini-card';
+    m.innerHTML=`<span class="mini-rank ${c.suit.cls}">${c.rank}</span><span class="mini-sym ${c.suit.cls}">${c.suit.sym}</span><div class="mini-x"></div>`;
+    el.appendChild(m);
+  });
+  const pb=document.getElementById('playedBody');
+  if(pb.style.maxHeight&&pb.style.maxHeight!=='0px'&&pb.style.maxHeight!=='0'){pb.style.maxHeight='none';}
+}
+
+function updateBadges(){
+  const avail=CTYPES.reduce((s,c)=>s+g().counts[c.key],0);
+  document.getElementById('bLeft').textContent=avail;
+  document.getElementById('bWin').textContent=g().wins;
+  document.getElementById('bLose').textContent=g().losses;
+  document.getElementById('bTie').textContent=g().ties;
+}
+
+function renderRankGrid(){
+  const grid=document.getElementById('rankGrid');grid.innerHTML='';
+  for(const rank of RANKS){
+    const cards=CTYPES.filter(c=>c.rank===rank);
+    const avail=cards.reduce((s,c)=>s+availCount(c.key),0);
+    const maxAvail=cards.length*DECKS;const pct=Math.round(avail/maxAvail*100);
+    const tile=document.createElement('div');tile.className='rank-tile';
+    tile.innerHTML=`<div class="rt-name">${RANK_NAMES[rank]||rank}</div><div class="rt-count">${avail}<span class="rt-sub">/${maxAvail}</span></div><div class="rt-bar"><div class="rt-bar-fill" style="width:${pct}%"></div></div>`;
+    grid.appendChild(tile);
+  }
+}
+
+function renderLog(){
+  const list=document.getElementById('logList');
+  if(!g().log.length){list.innerHTML='<div class="log-empty">No rounds yet.</div>';return;}
+  list.innerHTML=g().log.slice().reverse().map(e=>{
+    const result=e.result;
+    const resBadge=result==='win'?'<span class="log-badge lb-w">IN ✅</span>':result==='lose'?'<span class="log-badge lb-l">OUT ❌</span>':'<span class="log-badge lb-t">PAIR 🔵</span>';
+    const betBadge=e.bet?`<span class="log-badge ${e.bet==='in'?'lb-bet-in':e.bet==='out'?'lb-bet-out':'lb-bet-pair'}" style="margin-right:3px;">Bet:${e.bet.toUpperCase()}</span>`:'';
+    const c3=e.c3&&e.c3!=='?'?` → <b style="color:#c8b8ff">${e.c3}</b>`:'';
+    return`<div class="log-entry"><span class="log-info">R${e.round} &nbsp;${e.c1}↔${e.c2}${c3} <span style="color:#3a3470">(${e.pct}% IN)</span></span><span>${betBadge}${resBadge}</span></div>`;
+  }).join('');
+  const lb=document.getElementById('logBody');
+  if(lb.style.maxHeight&&lb.style.maxHeight!=='0px'&&lb.style.maxHeight!=='0'){lb.style.maxHeight='none';}
+}
+
+/* ---- BOT ---- */
+function updateBot(){
+  const verd=document.getElementById('botVerdict'),btxt=document.getElementById('botText'),bsub=document.getElementById('botSub'),bstats=document.getElementById('botStats'),bgap=document.getElementById('botGap');
+  if(sel.length<2){verd.className='bot-verdict bv-neutral';btxt.textContent='Waiting...';bsub.textContent='Tap 2 border cards to get prediction';bstats.style.display='none';return;}
+  const p=calcProb();if(!p)return;
+  const isPair=p.lo===p.hi;
+  if(isPair){verd.className='bot-verdict bv-tie';btxt.textContent='PAIR — Bet OUT or PAIR';bsub.textContent='Same rank on both borders. No IN win possible.';bstats.style.display='none';return;}
+  bstats.style.display='flex';
+  document.getElementById('bfW').style.width=p.pct+'%';document.getElementById('bfT').style.width=p.tiePct+'%';document.getElementById('bfL').style.width=p.losePct+'%';
+  document.getElementById('bpW').textContent=p.pct+'%';document.getElementById('bpT').textContent=p.tiePct+'%';document.getElementById('bpL').textContent=p.losePct+'%';
+  document.getElementById('bcW').textContent=p.wins+' cards';document.getElementById('bcT').textContent=p.ties+' cards';document.getElementById('bcL').textContent=p.losses+' cards';
+  const winRanks=RANKS.filter(r=>{const v=RANK_VAL[r];return v>p.lo&&v<p.hi;});
+  const gap=p.hi-p.lo-1;
+  let cls,txt,sub;
+  if(p.pct>=60){cls='bv-win';txt='✅ BET IN — Strong!';sub=`${p.pct}% chance IN Between. Gap of ${gap}.`;}
+  else if(p.pct>=40){cls='bv-win';txt='✅ BET IN — Moderate';sub=`${p.pct}% chance IN. Still favors IN.`;}
+  else if(p.pct>=25){cls='bv-lose';txt='⚠️ RISKY — Lean OUT';sub=`Only ${p.pct}% IN. ${p.losePct}% chance OUTSIDE.`;}
+  else{cls='bv-lose';txt='❌ BET OUT';sub=`Tight gap. Only ${p.pct}% IN. Bet OUT or skip.`;}
+  verd.className='bot-verdict '+cls;btxt.textContent=txt;bsub.textContent=sub;
+  bgap.textContent=`Gap: ${gap} rank${gap!==1?'s':''} · Win ranks: ${winRanks.length>0?winRanks.join(', '):'none'} · ${p.total} cards in pool`;
+}
+
+/* ---- CROSS-GAME PREDICTION ---- */
+function updatePrediction(){
+  const completedGames=games.filter(gm=>gm.rounds>=5).length;
+  const predLocked=document.getElementById('predLocked');
+  const predBody=document.getElementById('predBody');
+
+  if(completedGames===0){
+    predLocked.textContent='Unlocks after Game 1';
+    predBody.innerHTML='<div style="font-size:12px;color:#3a3470;font-style:italic;">Complete Game 1 to unlock cross-game predictions.</div>';
+    return;
+  }
+
+  predLocked.textContent=`Based on ${completedGames} completed game${completedGames>1?'s':''}`;
+
+  // Total draws tracked
+  const totalDrawn=Object.values(globalDrawnRanks).reduce((a,b)=>a+b,0);
+  if(totalDrawn===0)return;
+
+  // Overall W/L/T across all completed games
+  let totalW=0,totalL=0,totalT=0;
+  games.forEach(gm=>{if(gm.rounds>=5){totalW+=gm.wins;totalL+=gm.losses;totalT+=gm.ties;}});
+  const totalR=totalW+totalL+totalT;
+  const winRate=totalR>0?Math.round(totalW/totalR*100):0;
+  const loseRate=totalR>0?Math.round(totalL/totalR*100):0;
+  const tieRate=100-winRate-loseRate;
+
+  // Hot ranks (appeared more than avg), cold ranks (appeared less)
+  const avgPerRank=totalDrawn/RANKS.length;
+  const ranked=RANKS.map(r=>({rank:r,count:globalDrawnRanks[r]||0})).sort((a,b)=>b.count-a.count);
+  const hot=ranked.slice(0,4);
+  const cold=ranked.slice(-4).reverse();
+
+  // Predict next game: estimate probability based on avg drawn distribution
+  // For the next game (fresh deck), standard probability is ~35% IN for a random gap
+  // But we adjust based on which ranks appeared most (high/low/mid)
+  const midRanks=['5','6','7','8','9','10'];
+  const highLowRanks=['A','2','3','K','Q','J'];
+  const midHotCount=midRanks.reduce((s,r)=>s+(globalDrawnRanks[r]||0),0);
+  const hlHotCount=highLowRanks.reduce((s,r)=>s+(globalDrawnRanks[r]||0),0);
+  const midBias=totalDrawn>0?Math.round(midHotCount/totalDrawn*100):50;
+
+  let advice='',adviceColor='#8080d0';
+  if(winRate>=55){advice=`🔥 Hot streak! ${winRate}% wins so far. The gap is working in your favor — keep betting IN when gap ≥ 4 ranks.`;adviceColor='#4ade80';}
+  else if(winRate>=40){advice=`📊 Balanced results (${winRate}% W). Bet IN only when gap ≥ 5 ranks, otherwise OUT is safer.`;adviceColor='#fbbf24';}
+  else{advice=`⚠️ Tough run (${winRate}% W, ${loseRate}% L). The deck is dealing tight gaps. Favor OUT bets until a wide gap appears.`;adviceColor='#f87171';}
+
+  if(midBias>55){advice+=` Mid-rank cards (5–10) are running hot — borders tend to land close, reducing IN gaps.`;}
+  else if(midBias<40){advice+=` High/low cards (A,2,3,J,Q,K) are running hot — expect wider gaps, favoring IN bets.`;}
+
+  predBody.innerHTML=`
+  <div class="pred-grid">
+    <div class="pred-card"><div class="pred-card-title">Overall Win Rate</div><div class="pred-card-val" style="color:${winRate>=50?'#4ade80':'#f87171'}">${winRate}%</div><div class="pred-card-sub">${totalW}W ${totalL}L ${totalT}T</div></div>
+    <div class="pred-card"><div class="pred-card-title">Games Done</div><div class="pred-card-val">${completedGames}/5</div><div class="pred-card-sub">${totalR} rounds tracked</div></div>
+    <div class="pred-card"><div class="pred-card-title">In Between Rate</div><div class="pred-card-val">${winRate}%</div><div class="pred-card-sub">vs 35% baseline</div></div>
+    <div class="pred-card"><div class="pred-card-title">Mid-Rank Bias</div><div class="pred-card-val">${midBias}%</div><div class="pred-card-sub">${midBias>50?'Tighter gaps likely':'Wider gaps likely'}</div></div>
+  </div>
+  <div class="pred-insight">
+    <div class="pred-insight-title">🔥 Hot ranks (drawn most)</div>
+    <div class="rank-hot">${hot.map(r=>`<span class="rank-chip chip-hot">${r.rank} ×${r.count}</span>`).join('')}</div>
+  </div>
+  <div class="pred-insight">
+    <div class="pred-insight-title">❄️ Cold ranks (drawn least)</div>
+    <div class="rank-hot">${cold.map(r=>`<span class="rank-chip chip-cold">${r.rank} ×${r.count}</span>`).join('')}</div>
+  </div>
+  <div class="pred-advice" style="color:${adviceColor}">${advice}</div>`;
+}
+
+function resetAll(){
+  games=Array.from({length:5},newGame);cur=0;sel=[];sel3=null;betChoice=null;
+  globalDrawnRanks={};RANKS.forEach(r=>globalDrawnRanks[r]=0);
+  document.getElementById('probRow').style.color='#9080d0';
+  buildTabs();render();updateSelUI();updateBot();updatePrediction();
+}
+
+buildTabs();render();updateSelUI();updateBot();updatePrediction();
+</script>
+</body>
+</html>
